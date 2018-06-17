@@ -1,0 +1,14 @@
+list_names:
+  path: /names/
+  method: GET
+  action: name/list
+
+create_name:
+  path: /names/
+  method: POST
+  action: name/create
+
+delete_name:
+  path: /names/{id}
+  method: DELETE
+  action: name/delete

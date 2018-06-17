@@ -1,0 +1,15 @@
+{
+  "name": "@fabschurt/baby-names",
+  "description": "A minimalistic web app to help with choosing baby names.",
+  "author": "Fabien Schurter <fabien@fabschurt.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.0"
+  },
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "js-yaml": "^3.12"
+  }
+}

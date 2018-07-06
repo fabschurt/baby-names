@@ -6,10 +6,15 @@
   "engines": {
     "node": ">=8.0"
   },
+  "main": "index.js",
+  "_moduleAliases": {
+    "@src": "src",
+    "@config": "config"
+  },
   "scripts": {
-    "start": "node src/app.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "js-yaml": "^3.12"
+    "module-alias": "^2.1"
   }
 }

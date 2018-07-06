@@ -1,26 +1,24 @@
-let http = require('http')
-let router = require('./router')
+var http = require('http')
+var router = require('@src/router')
 
-const listeningPort = process.argv[2] ? process.argv[2] : 8080
+exports.server = () => (
+  http.createServer((request, response) => {
+    console.info(`[${request.method}] ${request.url}`)
 
-let server = http.createServer((request, response) => {
-  console.log(request.url)
+    var staticFileContent = router.tryStaticFile(request)
 
-  let action = router.mapRequestToAction(request)
+    if (staticFileContent) {
+      return response.end(staticFileContent)
+    }
 
-  if (!action) {
+    var action = router.mapRequestToAction(request)
+
+    if (action) {
+      response.end(action(request))
+    }
+
     response.statusCode = 404
 
     return response.end()
-  }
-
-  response.end(action(request))
-})
-
-server.listen(listeningPort, (error) => {
-  if (error) {
-    return console.error(error)
-  }
-
-  console.log(`Server is listening on ${listeningPort}…`)
-})
+  })
+)

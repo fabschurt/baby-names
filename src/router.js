@@ -1,54 +1,42 @@
-let config = require('./config')
-let utils = require('./utils')
+var fs = require('fs')
+var utils = require('@src/utils')
 
-const actionDir = './action'
+const docRoot = `${__dirname}/../public`
 
-let mapRequestToRoute = (request) => {
-  routes = config.loadFromYaml('routing.yml')
+var convertPathToRouteRegex = (path) => (
+  new RegExp(`^${utils.escapeForRegExp(path).replace(/\\{\w+\\}/g, '([^/]+)')}$`)
+)
 
-  if (!routes) {
-    return null
-  }
+exports.tryStaticFile = (request) => {
+  var filePath = docRoot + request.url
+
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile()
+    ? fs.readFileSync(filePath)
+    : null
+}
+
+exports.mapRequestToAction = (request) => {
+  var routes = require('@config/routes')
 
   for (routeKey in routes) {
-    route = routes[routeKey]
+    var route = routes[routeKey]
 
-    if (typeof route.path !== 'string' || typeof route.method !== 'string') {
+    if (
+      typeof route.path !== 'string' ||
+      typeof route.method !== 'string' ||
+      typeof route.action.exec !== 'function'
+    ) {
       continue
     }
 
-    let pathRegex = `^${utils.escapeForRegExp(route.path).replace(/\\{\w+\\}/g, '(.+)')}$`
-    let routeMatching = request.url.match(new RegExp(pathRegex))
+    var routeMatching = request.url.match(convertPathToRouteRegex(route.path))
 
-    if (!routeMatching || !request.method === route.method) {
+    if (!routeMatching || request.method !== route.method) {
       continue
     }
 
-    return {
-      action: route.action,
-      args: routeMatching.slice(1),
-    }
+    return (request) => route.action.exec(request, ...routeMatching.slice(1))
   }
 
   return null
 }
-
-let mapRouteToAction = (route) => {
-  if (typeof route.action !== 'string' || !Array.isArray(route.args)) {
-    return null
-  }
-
-  try {
-    var action = require(`${actionDir}/${route.action}`)
-  } catch (error) {
-    return null
-  }
-
-  return action.exec ? (...args) => action.exec(...route.args, ...args) : null
-}
-
-exports.mapRequestToAction = (request) => (
-  mapRouteToAction(
-    mapRequestToRoute(request)
-  )
-)

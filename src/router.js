@@ -8,7 +8,7 @@ var convertPathToRouteRegex = (path) => (
 )
 
 exports.tryStaticFile = (request) => {
-  var filePath = docRoot + request.url
+  var filePath = docRoot + (request.url === '/' ? '/index.html' : request.url)
 
   return fs.existsSync(filePath) && fs.statSync(filePath).isFile()
     ? fs.readFileSync(filePath)

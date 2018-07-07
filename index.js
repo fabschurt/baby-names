@@ -1,9 +1,9 @@
 require('module-alias/register')
 
-var app = require('@src/app.js')
+const app = require('@src/app.js')
 
-const listeningPort = process.argv[2] || 8080
+const LISTENING_PORT = process.argv[2] || 8080
 
-app.server().listen(listeningPort, (error) => (
-  error ? console.error(error) : console.info(`Server is listening on port ${listeningPort}…`)
+app.server().listen(LISTENING_PORT, (error) => (
+  error ? console.error(error) : console.info(`Server is listening on port ${LISTENING_PORT}…`)
 ))

@@ -1,1 +1,1 @@
-exports.exec = (request, id) => null
+module.exports = () => null

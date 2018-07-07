@@ -1,42 +1,39 @@
-var fs = require('fs')
-var utils = require('@src/utils')
+const routes = require('@config/routes')
+const utils = require('@src/utils')
+const staticFile = require('@src/action/staticFile')
 
-const docRoot = `${__dirname}/../public`
-
-var convertPathToRouteRegex = (path) => (
+let convertPathToRegExp = path => (
   new RegExp(`^${utils.escapeForRegExp(path).replace(/\\{\w+\\}/g, '([^/]+)')}$`)
 )
 
-exports.tryStaticFile = (request) => {
-  var filePath = docRoot + (request.url === '/' ? '/index.html' : request.url)
+let selectValidRoutes = route => (
+  typeof route.path === 'string' &&
+  typeof route.method === 'string' &&
+  typeof route.action === 'function'
+)
 
-  return fs.existsSync(filePath) && fs.statSync(filePath).isFile()
-    ? fs.readFileSync(filePath)
+let deduceMatchingAction = (request) => {
+  let match =
+    Object.values(routes)
+      .filter(selectValidRoutes)
+      .filter(route => route.method === request.method)
+      .map(route => (
+        {
+          route,
+          pathMatch: request.url.match(convertPathToRegExp(route.path)),
+        }
+      ))
+      .find(route => Array.isArray(route.pathMatch))
+
+  return match
+    ? (res, req) => match.route.action(res, req, ...match.pathMatch.slice(1))
     : null
 }
 
 exports.mapRequestToAction = (request) => {
-  var routes = require('@config/routes')
+  let staticFilePath = utils.getStaticFilePath(request.url)
 
-  for (routeKey in routes) {
-    var route = routes[routeKey]
-
-    if (
-      typeof route.path !== 'string' ||
-      typeof route.method !== 'string' ||
-      typeof route.action.exec !== 'function'
-    ) {
-      continue
-    }
-
-    var routeMatching = request.url.match(convertPathToRouteRegex(route.path))
-
-    if (!routeMatching || request.method !== route.method) {
-      continue
-    }
-
-    return (request) => route.action.exec(request, ...routeMatching.slice(1))
-  }
-
-  return null
+  return staticFilePath
+    ? (req, res) => staticFile(req, res, staticFilePath)
+    : deduceMatchingAction(request)
 }

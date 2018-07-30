@@ -8,6 +8,12 @@ module.exports = {
   rules: {
     semi: ['error', 'never'],
     'prefer-const': 'off',
-    'import/no-unresolved': 'off',
+    'import/no-unresolved': ['error', {
+      commonjs: true,
+      caseSensitive: true,
+      ignore: [
+        '^@',
+      ],
+    }],
   },
 };
